@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search ARGO Data</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #0a1f2e, #1a3c5a); color: #e0e7f0; line-height: 1.6; transition: opacity 0.3s; }
+        .header { background: linear-gradient(90deg, #1a5f7a, #2a8ab7); color: #ffffff; padding: 20px; text-align: center; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .search-box { background: #12263a; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); padding: 25px; border: 1px solid #2a5a7a; margin-bottom: 20px; }
+        .search-box form { display: flex; gap: 10px; flex-wrap: wrap; }
+        .search-box input, .search-box button { padding: 12px; border-radius: 8px; border: 1px solid #3a6a8a; background: #1a3c5a; color: #e0e7f0; font-size: 16px; }
+        .search-box input { flex-grow: 1; }
+        .search-box button { background: linear-gradient(135deg, #1a5f7a, #2a8ab7); transition: transform 0.2s; }
+        .search-box button:hover { transform: scale(1.05); }
+        .results { background: #12263a; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); padding: 20px; border: 1px solid #2a5a7a; }
+        .results table { width: 100%; border-collapse: collapse; }
+        .results th, .results td { padding: 10px; text-align: left; border-bottom: 1px solid #2a5a7a; }
+        .results th { color: #4aa3cc; }
+        .results tr { animation: fadeIn 0.5s ease-out; }
+        .map-preview { height: 400px; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzA4MjQzOCIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMTAiIGZpbGw9IiM0YWEzY2MiLz48L3N2Zz4=') no-repeat center / cover; border-radius: 8px; margin-top: 20px; position: relative; overflow: hidden; }
+        .map-preview::before { content: ''; position: absolute; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(26,95,122,0.4) 0%, rgba(18,38,58,0.6) 100%); animation: wave-flow 5s infinite linear; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes wave-flow { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+        .back-button { margin-top: 20px; padding: 12px 20px; background: linear-gradient(135deg, #1a5f7a, #2a8ab7); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .back-button:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="header">ARGO Conversational AI – Search Data</div>
+    <div class="container">
+        <div class="search-box">
+            <form onsubmit="handleSearch(event)">
+                <input type="text" placeholder="Latitude" id="lat">
+                <input type="text" placeholder="Longitude" id="lon">
+                <input type="text" placeholder="Date (YYYY-MM)" id="date">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="results">
+            <table>
+                <thead><tr><th>Float ID</th><th>Lat</th><th>Lon</th><th>Date</th><th>Depth</th></tr></thead>
+                <tbody id="results-table">
+                    <tr><td>Float001</td><td>5.0</td><td>75.0</td><td>2023-03</td><td>-2000m</td></tr>
+                    <tr><td>Float002</td><td>10.0</td><td>70.0</td><td>2023-03</td><td>-1500m</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="map-preview"></div>
+        <button class="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+    </div>
+
+    <script>
+        function handleSearch(event) {
+            event.preventDefault();
+            const lat = document.getElementById('lat').value;
+            const lon = document.getElementById('lon').value;
+            const date = document.getElementById('date').value;
+            alert(`Searching: Lat ${lat}, Lon ${lon}, Date ${date}`);
+        }
+
+        // Smooth page transition
+        document.querySelector('.back-button').addEventListener('click', () => {
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.href = 'index.html', 300);
+        });
+    </script>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGO Conversational AI</title>
+    <style>
+        /* * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #0a1f2e, #1a3c5a); color: #e0e7f0; line-height: 1.6; transition: opacity 0.3s; background-attachment: fixed; }
+        .header { background: linear-gradient(90deg, #1a5f7a, #2a8ab7); color: #ffffff; padding: 20px; text-align: center; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .container { display: grid; grid-template-columns: 250px 1fr; min-height: 90vh; gap: 10px; padding: 20px; }
+        .sidebar { background: #0f2b40; padding: 20px; border-right: 1px solid #2a5a7a; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .sidebar button { display: block; width: 100%; padding: 12px; margin: 10px 0; background: linear-gradient(135deg, #1a5f7a, #2a8ab7); color: #ffffff; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: transform 0.2s, background 0.3s; text-align: left; padding-left: 15px; }
+        .sidebar button:hover { background: linear-gradient(135deg, #134d66, #1f7096); transform: translateY(-2px); }
+        .main { flex-grow: 1; padding: 20px; display: grid; gap: 20px; grid-template-areas: "chatbot" "map" "stats" "queries"; }
+        .chatbot-box { grid-area: chatbot; background: #12263a; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); padding: 25px; max-width: 800px; margin: 0 auto; border: 1px solid #2a5a7a; }
+        .chatbot-box form { display: flex; gap: 10px; align-items: center; }
+        .chatbot-box input { flex-grow: 1; padding: 15px; border: 1px solid #3a6a8a; border-radius: 8px; font-size: 16px; background: #1a3c5a; color: #e0e7f0; transition: border-color 0.3s, box-shadow 0.3s; }
+        .chatbot-box input:focus { border-color: #4aa3cc; box-shadow: 0 0 8px rgba(74,163,204,0.5); outline: none; }
+        .chatbot-box input::placeholder { color: #a0b7c9; animation: typing-cursor 1.2s infinite; }
+        @keyframes typing-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .chatbot-box button { padding: 15px 25px; background: linear-gradient(135deg, #1a5f7a, #2a8ab7); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.3s, transform 0.2s; }
+        .chatbot-box button:hover { background: linear-gradient(135deg, #134d66, #1f7096); transform: translateY(-2px); }
+        .map-placeholder { grid-area: map; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjcwMCI+PHBhdGggZmlsbD0iIzA4MjQzOCIgZD0iTTAgMEgxMjAwdjcwMEgweiIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhYTNjYyIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0wLDM1MCBDMjQwLDI1MCA0ODAsMzkwIDcyMCwzMjAgOTYwLDI1MCAxMjAwLDM5MCAxMjAwLDM1MCIvPjxwYXRoIGQ9Ik0xODAsMzEwIDcyMCwyMTAgMTA4MCwzNzAiLz48cGF0aCBkPSJNMzYwLDI4MCA2MDAsNDYwIDk2MCwzMDAiLz48L2c+PHRleHQgeD0iNjAwIiB5PSIzNTAiIGZpbGw9IiNhMGI3YzkiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q2xpY2sgdG8gVmlldyBPY2VhbiBUcmFqZWN0b3JpZXM8L3RleHQ+PC9zdmc+') no-repeat center center / cover; height: 700px; max-width: 1200px; width: 100%; margin: 0 auto; border-radius: 15px; position: relative; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); transition: transform 0.3s, box-shadow 0.3s; }
+        .map-placeholder:hover { transform: scale(1.05); box-shadow: 0 12px 32px rgba(74,163,204,0.7); }
+        .map-placeholder::before { content: ''; position: absolute; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(26,95,122,0.4) 0%, rgba(18,38,58,0.6) 100%); animation: wave-flow 5s infinite linear; }
+        .map-placeholder::after { content: ''; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(74,163,204,0.3) 0%, transparent 70%); animation: pulse 4s infinite; }
+        @keyframes wave-flow { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.15); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.6; } }
+        .data-preview { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 400px; height: 400px; background: rgba(18,38,58,0.8); border-radius: 15px; display: none; border: 2px solid #4aa3cc; }
+        .map-placeholder:hover .data-preview { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        canvas { width: 100%; height: 100%; }
+        .recent-queries { grid-area: queries; background: #12263a; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); padding: 20px; max-width: 800px; margin: 0 auto; border: 1px solid #2a5a7a; }
+        .recent-queries h3 { margin-bottom: 15px; font-size: 20px; color: #4aa3cc; }
+        .recent-queries ul { list-style: none; }
+        .recent-queries li { padding: 10px 0; border-bottom: 1px solid #2a5a7a; font-size: 15px; transition: color 0.3s; animation: fadeIn 0.5s ease-out; cursor: pointer; }
+        .recent-queries li:hover { color: #4aa3cc; }
+        .recent-queries li:last-child { border-bottom: none; }
+        .stats-panel { grid-area: stats; background: #12263a; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); padding: 20px; max-width: 1200px; margin: 0 auto; border: 1px solid #2a5a7a; display: flex; justify-content: space-between; gap: 20px; }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-item h4 { font-size: 20px; color: #4aa3cc; margin-bottom: 5px; }
+        .stat-item p { font-size: 18px; color: #e0e7f0; }
+        .stat-item:hover { transform: scale(1.05); transition: transform 0.3s; }
+        .footer { background: linear-gradient(90deg, #1a5f7a, #2a8ab7); color: #ffffff; padding: 15px; text-align: center; font-size: 13px; box-shadow: 0 -4px 12px rgba(0,0,0,0.2); }
+        @media (max-width: 1280px) { .container { grid-template-columns: 1fr; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #2a5a7a; } .main { padding: 10px; } .chatbot-box, .recent-queries, .stats-panel, .map-placeholder { max-width: 100%; } .map-placeholder { height: 500px; } }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #12263a; padding: 20px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); border: 1px solid #2a5a7a; z-index: 1000; }
+        .modal-content { color: #e0e7f0; text-align: center; }
+        .modal.show { display: block; animation: fadeIn 0.5s; }
+        .spinner { border: 4px solid #2a5a7a; border-top: 4px solid #4aa3cc; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Particle effect */
+        /* .particle { position: absolute; background: rgba(74,163,204,0.6); border-radius: 50%; pointer-events: none; }
+        .map-placeholder:hover .particle { animation: bubble 3s infinite; }
+        @keyframes bubble { 0% { transform: translate(0, 0) scale(0); opacity: 0.6; } 50% { opacity: 0.3; } 100% { transform: translate(50px, -50px) scale(1); opacity: 0; } } */ */
+
+
+        <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { 
+        /* Replace gradient with ocean background image */
+        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjEwMDAiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeDI9IjEwMCUiIHkxPSIwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNjZmYxZmY7Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMDA0NDY2OyIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjEwMDAiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEiPjxwYXRoIGQ9Ik0wLDUwMCBDMjAwLDQwMCA0MDAsNTYwIDYwMCw0ODAgODAwLDQwMCAxMDAwLDU2MCAxMjAwLDUwMCIvPjxwYXRoIGQ9Ik0xNTAsNDY0IDYwMCwzNTAgOTUwLDU1NiIvPjxwYXRoIGQ9Ik0zMDAsNDE2IDUwMCw2OTAgOTAwLDQ0OCIvPjwvZz48L3N2Zz4=') no-repeat center center fixed; 
+        background-size: cover; 
+        color: #e0e7f0; 
+        line-height: 1.6; 
+        transition: opacity 0.3s; 
+        background-attachment: fixed; 
+    }
+    .header { 
+        background: linear-gradient(90deg, rgba(26, 95, 122, 0.8), rgba(42, 138, 183, 0.8)); 
+        color: #ffffff; 
+        padding: 20px; 
+        text-align: center; 
+        font-size: 28px; 
+        font-weight: 700; 
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+        animation: fadeInHeader 1s ease-out; 
+    }
+    @keyframes fadeInHeader { 
+        from { opacity: 0; transform: translateY(-20px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+    .container { 
+        display: grid; 
+        grid-template-columns: 250px 1fr; 
+        min-height: 90vh; 
+        gap: 10px; 
+        padding: 20px; 
+        animation: fadeIn 1s ease-out; 
+    }
+    @keyframes fadeIn { 
+        from { opacity: 0; } 
+        to { opacity: 1; } 
+    }
+    .sidebar { 
+        background: rgba(15, 43, 64, 0.9); 
+        padding: 20px; 
+        border-right: 1px solid #2a5a7a; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+        animation: slideInLeft 1s ease-out; 
+    }
+    @keyframes slideInLeft { 
+        from { transform: translateX(-100%); opacity: 0; } 
+        to { transform: translateX(0); opacity: 1; } 
+    }
+    .sidebar button { 
+        display: block; 
+        width: 100%; 
+        padding: 12px; 
+        margin: 10px 0; 
+        background: linear-gradient(135deg, #1a5f7a, #2a8ab7); 
+        color: #ffffff; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer; 
+        font-size: 16px; 
+        transition: transform 0.2s, background 0.3s; 
+        text-align: left; 
+        padding-left: 15px; 
+    }
+    .sidebar button:hover { 
+        background: linear-gradient(135deg, #134d66, #1f7096); 
+        transform: translateY(-2px); 
+    }
+    .main { 
+        flex-grow: 1; 
+        padding: 20px; 
+        display: grid; 
+        gap: 20px; 
+        grid-template-areas: "chatbot" "map" "stats" "queries"; 
+        animation: slideInRight 1s ease-out; 
+    }
+    @keyframes slideInRight { 
+        from { transform: translateX(100%); opacity: 0; } 
+        to { transform: translateX(0); opacity: 1; } 
+    }
+    .chatbot-box { 
+        grid-area: chatbot; 
+        background: rgba(18, 38, 58, 0.9); 
+        border-radius: 12px; 
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4); 
+        padding: 25px; 
+        max-width: 800px; 
+        margin: 0 auto; 
+        border: 1px solid #2a5a7a; 
+        animation: bounceIn 1s ease-out; 
+    }
+    @keyframes bounceIn { 
+        from { transform: scale(0.9); opacity: 0; } 
+        to { transform: scale(1); opacity: 1; } 
+    }
+    .chatbot-box form { display: flex; gap: 10px; align-items: center; }
+    .chatbot-box input { flex-grow: 1; padding: 15px; border: 1px solid #3a6a8a; border-radius: 8px; font-size: 16px; background: #1a3c5a; color: #e0e7f0; transition: border-color 0.3s, box-shadow 0.3s; }
+    .chatbot-box input:focus { border-color: #4aa3cc; box-shadow: 0 0 8px rgba(74,163,204,0.5); outline: none; }
+    .chatbot-box input::placeholder { color: #a0b7c9; animation: typing-cursor 1.2s infinite; }
+    @keyframes typing-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .chatbot-box button { padding: 15px 25px; background: linear-gradient(135deg, #1a5f7a, #2a8ab7); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.3s, transform 0.2s; }
+    .chatbot-box button:hover { background: linear-gradient(135deg, #134d66, #1f7096); transform: translateY(-2px); }
+    .map-placeholder { 
+        grid-area: map; 
+        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjcwMCI+PHBhdGggZmlsbD0iIzA4MjQzOCIgZD0iTTAgMEgxMjAwdjcwMEgweiIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhYTNjYyIgc3Ryb2tlLXdpZHRoPSIxLjUiPjxwYXRoIGQ9Ik0wLDM1MCBDMjQwLDI1MCA0ODAsMzkwIDcyMCwzMjAgOTYwLDI1MCAxMjAwLDM5MCAxMjAwLDM1MCIvPjxwYXRoIGQ9Ik0xODAsMzEwIDcyMCwyMTAgMTA4MCwzNzAiLz48cGF0aCBkPSJNMzYwLDI4MCA2MDAsNDYwIDk2MCwzMDAiLz48L2c+PHRleHQgeD0iNjAwIiB5PSIzNTAiIGZpbGw9IiNhMGI3YzkiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q2xpY2sgdG8gVmlldyBPY2VhbiBUcmFqZWN0b3JpZXM8L3RleHQ+PC9zdmc+') no-repeat center center / cover; 
+        height: 700px; 
+        max-width: 1200px; 
+        width: 100%; 
+        margin: 0 auto; 
+        border-radius: 15px; 
+        position: relative; 
+        overflow: hidden; 
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5); 
+        transition: transform 0.3s, box-shadow 0.3s; 
+        animation: waveEffect 4s infinite ease-in-out; 
+    }
+    /* @keyframes waveEffect { 
+        0% { background-position: 0 0; } 
+        50% { background-position: 20px -20px; } 
+        100% { background-position: 0 0; } 
+    } */
+    .map-placeholder:hover { transform: scale(1.05); box-shadow: 0 12px 32px rgba(74,163,204,0.7); }
+    .map-placeholder::before { 
+        content: ''; 
+        position: absolute; 
+        width: 100%; 
+        height: 100%; 
+        background: linear-gradient(180deg, rgba(26,95,122,0.4) 0%, rgba(18,38,58,0.6) 100%); 
+        animation: wave-flow 5s infinite linear; 
+    }
+    .map-placeholder::after { 
+        content: ''; 
+        position: absolute; 
+        width: 100%; 
+        height: 100%; 
+        background: radial-gradient(circle at center, rgba(74,163,204,0.3) 0%, transparent 70%); 
+        animation: pulse 4s infinite; 
+    }
+    @keyframes wave-flow { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.15); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.6; } }
+    .data-preview { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 400px; height: 400px; background: rgba(18,38,58,0.8); border-radius: 15px; display: none; border: 2px solid #4aa3cc; }
+    .map-placeholder:hover .data-preview { display: block; animation: fadeIn 0.5s; }
+    .particle { 
+        position: absolute; 
+        background: rgba(74,163,204,0.6); 
+        border-radius: 50%; 
+        pointer-events: none; 
+        animation: bubble 3s infinite; 
+    }
+    @keyframes bubble { 
+        0% { transform: translate(0, 0) scale(0); opacity: 0.6; } 
+        50% { opacity: 0.3; } 
+        100% { transform: translate(50px, -50px) scale(1); opacity: 0; } 
+    }
+    canvas { width: 100%; height: 100%; }
+    .recent-queries { 
+        grid-area: queries; 
+        background: rgba(18, 38, 58, 0.9); 
+        border-radius: 12px; 
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4); 
+        padding: 20px; 
+        max-width: 800px; 
+        margin: 0 auto; 
+        border: 1px solid #2a5a7a; 
+        animation: slideUp 1s ease-out; 
+    }
+    @keyframes slideUp { 
+        from { transform: translateY(20px); opacity: 0; } 
+        to { transform: translateY(0); opacity: 1; } 
+    }
+    .recent-queries h3 { margin-bottom: 15px; font-size: 20px; color: #4aa3cc; }
+    .recent-queries ul { list-style: none; }
+    .recent-queries li { padding: 10px 0; border-bottom: 1px solid #2a5a7a; font-size: 15px; transition: color 0.3s; animation: fadeIn 0.5s ease-out; cursor: pointer; }
+    .recent-queries li:hover { color: #4aa3cc; }
+    .recent-queries li:last-child { border-bottom: none; }
+    .stats-panel { 
+        grid-area: stats; 
+        background: rgba(18, 38, 58, 0.9); 
+        border-radius: 12px; 
+        box-shadow: 0 6px 18px rgba(0,0,0,0.4); 
+        padding: 20px; 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        border: 1px solid #2a5a7a; 
+        display: flex; 
+        justify-content: space-between; 
+        gap: 20px; 
+        animation: popIn 1s ease-out; 
+    }
+    @keyframes popIn { 
+        from { transform: scale(0.9); opacity: 0; } 
+        to { transform: scale(1); opacity: 1; } 
+    }
+    .stat-item { text-align: center; flex: 1; }
+    .stat-item h4 { font-size: 20px; color: #4aa3cc; margin-bottom: 5px; }
+    .stat-item p { font-size: 18px; color: #e0e7f0; }
+    .stat-item:hover { transform: scale(1.05); transition: transform 0.3s; }
+    .footer { 
+        background: linear-gradient(90deg, rgba(26, 95, 122, 0.8), rgba(42, 138, 183, 0.8)); 
+        color: #ffffff; 
+        padding: 15px; 
+        text-align: center; 
+        font-size: 13px; 
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.2); 
+        animation: fadeInFooter 1s ease-out; 
+    }
+    @keyframes fadeInFooter { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+    @media (max-width: 1280px) { 
+        .container { grid-template-columns: 1fr; } 
+        .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #2a5a7a; } 
+        .main { padding: 10px; } 
+        .chatbot-box, .recent-queries, .stats-panel, .map-placeholder { max-width: 100%; } 
+        .map-placeholder { height: 500px; } 
+    }
+    .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #12263a; padding: 20px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.4); border: 1px solid #2a5a7a; z-index: 1000; }
+    .modal-content { color: #e0e7f0; text-align: center; }
+    .modal.show { display: block; animation: fadeIn 0.5s; }
+    .spinner { border: 4px solid #2a5a7a; border-top: 4px solid #4aa3cc; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* Particle effect on load */
+    .map-placeholder { position: relative; overflow: hidden; }
+    .particle { 
+        position: absolute; 
+        background: rgba(74,163,204,0.6); 
+        border-radius: 50%; 
+        pointer-events: none; 
+        animation: bubble 3s infinite; 
+    }
+    @keyframes bubble { 
+        0% { transform: translate(0, 0) scale(0); opacity: 0.6; } 
+        50% { opacity: 0.3; } 
+        100% { transform: translate(50px, -50px) scale(1); opacity: 0; } 
+    }
+</style>
+    </style>
+</head>
+<body>
+    <div class="header">ARGO Conversational AI – Smart Ocean Data Explorer</div>
+    <div class="container">
+        <div class="sidebar">
+            <button onclick="window.location.href='search.html'">🌊 Search ARGO Data</button>
+            <button onclick="window.location.href='compare.html'">Compare Profiles</button>
+            <button onclick="window.location.href='3d-model.html'">View Map</button>
+            <button onclick="window.location.href='dashboard.html'">View Dashboard</button>
+        </div>
+        <div class="main">
+            <div class="chatbot-box">
+                <form onsubmit="handleQuery(event)">
+                    <input type="text" id="query-input" placeholder="Ask me: Show me salinity profiles near the equator in March 2023" list="query-suggestions">
+                    <datalist id="query-suggestions">
+                        <option value="Show me salinity profiles near the equator in March 2023">
+                        <option value="Compare BGC parameters in the Arabian Sea">
+                        <option value="What are the nearest ARGO floats to this location?">
+                    </datalist>
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+            <a href="3d-model.html" class="map-placeholder">Click to View Ocean Trajectories
+                <div class="data-preview">
+                    <canvas id="data-canvas"></canvas>
+                </div>
+            </a>
+            <div class="stats-panel">
+                <div class="stat-item"><h4>Active Floats</h4><p>3,800</p></div>
+                <div class="stat-item"><h4>Data Coverage</h4><p>85%</p></div>
+                <div class="stat-item"><h4>Profiles/Day</h4><p>12,000</p></div>
+            </div>
+            <div class="recent-queries">
+                <h3>Recent Queries</h3>
+                <ul id="queries-list">
+                    <li onclick="window.location.href='search.html'">Salinity profiles near equator, March 2023</li>
+                    <li>Temperature data for Pacific Ocean, Jan 2023</li>
+                    <li>Depth profiles near Atlantic, Feb 2023</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Acronyms: NetCDF - Network Common Data Format | CTD - Conductivity Temperature and Depth | BGC - Bio-Geo-Chemical Floats</div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p id="modal-text">Processing your query...</p>
+        </div>
+    </div>
+
+    <script>
+        function handleQuery(event) {
+            event.preventDefault();
+            const input = document.getElementById('query-input');
+            const query = input.value.trim();
+            if (query) {
+                const list = document.getElementById('queries-list');
+                const li = document.createElement('li');
+                li.textContent = query;
+                li.onclick = () => window.location.href = 'search.html';
+                list.appendChild(li);
+                input.value = '';
+                const modal = document.getElementById('modal');
+                const modalText = document.getElementById('modal-text');
+                modalText.textContent = `Processing: ${query}...`;
+                modal.classList.add('show');
+                setTimeout(() => {
+                    modal.classList.remove('show');
+                    modalText.textContent = 'Response: Query submitted! (Awaiting backend)';
+                }, 2000);
+            }
+        }
+
+        const canvas = document.getElementById('data-canvas');
+        const ctx = canvas.getContext('2d');
+        function drawDataPreview() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = '#4aa3cc';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 60; i++) {
+                const x = i * 6.5 + (canvas.width < 400 ? Math.sin(Date.now() * 0.001) * 20 : 0);
+                const y = canvas.height - (Math.sin(i * 0.2 + Date.now() * 0.002) * 100 + 150);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            requestAnimationFrame(drawDataPreview);
+        }
+        drawDataPreview();
+
+        // Smooth page transition
+        document.querySelectorAll('.sidebar button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.body.style.opacity = '0';
+                setTimeout(() => window.location.href = button.getAttribute('onclick').match(/'([^']+)'/)[1], 300);
+            });
+        });
+
+        // Particle effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 5 + 2;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            document.querySelector('.map-placeholder').appendChild(particle);
+            setTimeout(() => particle.remove(), 3000);
+        }
+        document.querySelector('.map-placeholder').addEventListener('mouseover', () => {
+            for (let i = 0; i < 5; i++) setTimeout(createParticle, i * 500);
+        });
+    </script>

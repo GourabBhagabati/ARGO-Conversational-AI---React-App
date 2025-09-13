@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Ocean Interactive 3D Map</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <!-- Cesium CSS -->
+    <link href="https://unpkg.com/cesium/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        html, body { height: 100%; margin: 0; font-family: Arial, Helvetica, sans-serif; }
+        #app { display: grid; grid-template-columns: 1fr 420px; grid-template-rows: 1fr; gap: 8px; height: 100%; padding: 8px; box-sizing: border-box; }
+        #cesiumContainer { width: 100%; height: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.3); background: linear-gradient(135deg, #12263a, #1a3c5a); }
+        #side { display: flex; flex-direction: column; gap: 8px; }
+        #leafletMap { height: 48%; border-radius: 8px; overflow: hidden; background: linear-gradient(135deg, #12263a, #1a3c5a); box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+        #plotlyChart { height: 48%; border-radius: 8px; overflow: hidden; background: linear-gradient(135deg, #12263a, #1a3c5a); box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+        .card { background: #12263a; padding: 8px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid #2a5a7a; }
+        .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        label { font-size: 13px; color: #e0e7f0; }
+        button, select, input[type=range] { padding: 6px 8px; border-radius: 6px; border: 1px solid #2a5a7a; background: #1a3c5a; color: #e0e7f0; }
+        small, .subtitle { color: #a0b7c9; font-size: 12px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="cesiumContainer"></div>
+        <div id="side">
+            <div class="card">
+                <div class="header">
+                    <h3>Controls</h3>
+                </div>
+                <div class="controls">
+                    <label for="basemap">Basemap:</label>
+                    <select id="basemap">
+                        <option value="osm">OpenStreetMap</option>
+                        <option value="topo" selected>TopoMap</option>
+                    </select>
+                    <button id="centerIO">Fly to Indian Ocean</button>
+                </div>
+            </div>
+            <div id="leafletMap"></div>
+            <div id="plotlyChart"></div>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script src="https://unpkg.com/cesium/Build/Cesium/Cesium.js"></script>
+
+    <script>
+        // Sample bathymetry / depth points in the Indian Ocean (lat, lon, depth in meters)
+        const bathyPoints = [
+            {lat: -20.0, lon: 70.0, depth: -4500},
+            {lat: -10.0, lon: 60.0, depth: -3800},
+            {lat: 0.0, lon: 80.0, depth: -5000},
+            {lat: 10.0, lon: 70.0, depth: -2200},
+            {lat: -5.0, lon: 95.0, depth: -3000},
+            {lat: 15.0, lon: 75.0, depth: -1200}
+        ];
+
+        // Indian Ocean approximate bounding polygon
+        const indianOceanGeoJSON = {
+            "type": "Feature",
+            "properties": {"name":"Indian Ocean (approx)"},
+            "geometry": { "type": "Polygon", "coordinates": [[[20, -40], [110, -40], [110, 30], [20, 30], [20, -40]]] }
+        };
+
+        // Leaflet map setup
+        const leafletMap = L.map('leafletMap', { worldCopyJump: true }).setView([5,75], 3);
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+        const satelliteLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 });
+
+        // Set TopoMap as default
+        satelliteLayer.addTo(leafletMap);
+        const ioLayer = L.geoJSON(indianOceanGeoJSON, { style: { color: '#0077be', weight: 2, fillOpacity: 0.02 } }).addTo(leafletMap);
+        let leafletMarker = null;
+
+        // Plotly setup
+        function initPlotly() {
+            const trace = {
+                x: bathyPoints.map(p => p.lon),
+                y: bathyPoints.map(p => p.lat),
+                z: bathyPoints.map(p => p.depth),
+                mode: 'markers', marker: { size: 6 }, type: 'scatter3d', name: 'Bathymetry samples'
+            };
+            const layout = {
+                margin: {l:0, r:0, b:0, t:30},
+                scene: { xaxis: { title: 'Longitude' }, yaxis: { title: 'Latitude' }, zaxis: { title: 'Depth (m)', autorange: 'reversed' } },
+                title: 'Sample Bathymetry (Indian Ocean)'
+            };
+            Plotly.newPlot('plotlyChart', [trace], layout, {responsive:true});
+        }
+
+        function updatePlotlyMarker(lat, lon) {
+            const markerTrace = { x: [lon], y: [lat], z: [0], mode: 'markers+text', marker:{size:8}, type:'scatter3d', name:'Selected' };
+            Plotly.react('plotlyChart', [
+                { x: bathyPoints.map(p=>p.lon), y: bathyPoints.map(p=>p.lat), z: bathyPoints.map(p=>p.depth), mode:'markers', marker:{size:6}, type:'scatter3d' },
+                markerTrace
+            ], null, {responsive:true});
+        }
+
+        // Cesium setup
+        Cesium.Ion.defaultAccessToken = '';  // Replace with your Cesium ion access token
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider: new Cesium.UrlTemplateImageryProvider({ url : 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', subdomains: ['a','b','c'] }), // Default to TopoMap
+            baseLayerPicker: false, timeline: false, animation: false
+        });
+
+        // Force initial imagery refresh to ensure tiles load
+        setTimeout(() => {
+            viewer.imageryLayers.removeAll();
+            viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', subdomains: ['a','b','c'] }));
+        }, 100); // Small delay to allow viewer initialization
+
+        function flyToIndianOcean() {
+            viewer.camera.flyTo({ destination : Cesium.Cartesian3.fromDegrees(75, -5, 2500000) });
+        }
+
+        viewer.entities.add({
+            name: 'Indian Ocean (approx)',
+            polygon: {
+                hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([20,-40,0, 110,-40,0, 110,30,0, 20,30,0]),
+                material: Cesium.Color.BLUE.withAlpha(0.07),
+                outline: true,
+                outlineColor: Cesium.Color.BLUE
+            }
+        });
+
+        // Sync Cesium → Leaflet
+        viewer.camera.changed.addEventListener(function() {
+            const cartographic = Cesium.Cartographic.fromCartesian(viewer.camera.position);
+            const lon = Cesium.Math.toDegrees(cartographic.longitude);
+            const lat = Cesium.Math.toDegrees(cartographic.latitude);
+            leafletMap.setView([lat, lon], 3, { animate:false });
+        });
+
+        // Cesium click
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(click) {
+            const pickedPosition = viewer.scene.pickPosition(click.position);
+            if (!pickedPosition) return;
+            const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+            const lon = Cesium.Math.toDegrees(cartographic.longitude);
+            const lat = Cesium.Math.toDegrees(cartographic.latitude);
+            viewer.entities.add({ position: Cesium.Cartesian3.fromDegrees(lon, lat), point: { pixelSize:10, color: Cesium.Color.RED } });
+            if (leafletMarker) leafletMap.removeLayer(leafletMarker);
+            leafletMarker = L.marker([lat, lon]).addTo(leafletMap).bindPopup(`Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`).openPopup();
+            updatePlotlyMarker(lat, lon);
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+        // Controls
+        const basemapSelect = document.getElementById('basemap');
+        basemapSelect.addEventListener('change', function(e) {
+            const v = e.target.value;
+            if (v === 'osm') {
+                viewer.imageryLayers.removeAll();
+                viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', subdomains:['a','b','c'] }));
+                leafletMap.eachLayer(layer => { if (layer instanceof L.TileLayer) leafletMap.removeLayer(layer); });
+                osmLayer.addTo(leafletMap);
+            } else {
+                viewer.imageryLayers.removeAll();
+                viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({ url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', subdomains:['a','b','c'] }));
+                leafletMap.eachLayer(layer => { if (layer instanceof L.TileLayer) leafletMap.removeLayer(layer); });
+                satelliteLayer.addTo(leafletMap);
+            }
+        });
+
+        document.getElementById('centerIO').addEventListener('click', flyToIndianOcean);
+
+        leafletMap.on('click', function(e) {
+            const { lat, lng } = e.latlng;
+            viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lng, lat, 2000000) });
+            if (leafletMarker) leafletMap.removeLayer(leafletMarker);
+            leafletMarker = L.marker([lat, lng]).addTo(leafletMap).bindPopup(`Lat: ${lat.toFixed(4)}, Lon: ${lng.toFixed(4)}`).openPopup();
+            updatePlotlyMarker(lat, lng);
+        });
+
+        // Initialize
+        initPlotly();
+        flyToIndianOcean();
+
+        window.addEventListener('resize', () => {
+            viewer.resize && viewer.resize();
+            Plotly.Plots.resize(document.getElementById('plotlyChart'));
+        });
+    </script>
+</body>
+</html>
